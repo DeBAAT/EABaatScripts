@@ -8,10 +8,9 @@ A number of scripts for Sparx Enterprise Architect.
 | Level | Folder / File | Description |
 | ----------- | ----------- | ----------- |
 | + | **BaatDiagramScripts** | A number of scripts which can be activated on a Diagram. Right-click in an empty space on the diagram and select the appropriate script from "*Specialize => Scripts*". |
-| ++ | *DImExExportConnectorsJAVA* | A JavaScript using the *ImExExportConnectorsJAVA* script to export Connector information to an Excel file for the Elements present on the Diagram selected. |
-| ++ | *DImExExportElementsJAVA* | A JavaScript using the *ImExExportConnectorsJAVA* script to export Element information to an Excel file for the Elements present on the Diagram selected. |
+| ++ | *DImExExportConnectorsJAVA* *DImExExportElementsJAVA* *DImExImportConnectorsJAVA* *DImExImportElementsJAVA* | A set of JavaScripts using the *ImExExport* scripts in *BaatScriptLib* to im/export Connector and Element information for the Elements present on the Diagram selected. |
 | + | **BaatPackageScripts** | A number of scripts which can be activated on a Package. Right-click on a package and select the appropriate script from "*Specialize => Scripts*". |
-| ++ | *PImExExportConnectorsJAVA* | A JavaScript using the *ImExExportConnectorsJAVA* script to export Connector information to an Excel file for the Elements present in the Package selected. The script checks recursively all sub-packages as well. |
+| ++ | *PImExExportConnectorsJAVA* *PImExExportElementsJAVA* *PImExImportConnectorsJAVA* *PImExImportElementsJAVA* | A set of JavaScripts using the *ImExExport* scripts in *BaatScriptLib* to im/export Connector and Element information for the Elements present in the Package selected. The scripts check recursively all sub-packages as well. |
 | ++ | *ModelCountTaggedValuesVBS* | A VBScript to count the number of all Enum TaggedValues which are written to an Excel file including the date. Each time the script is run, the values for today are added or updated on the worksheet such that a history of values is created which can be processed by e.g. PowerBI. |
 | + | **BaatScriptLib** | A number of scripts which cannot be used directly but are to be used in other scripts. |
 | ++ | *JavaScript-Connector* | A JavaScript based on JavaScript-TaggedValue contains some methods to manipulate Connectors. |
