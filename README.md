@@ -5,10 +5,11 @@ A number of scripts for Sparx Enterprise Architect.
 
 ## Files in the browser structure
 
-| L | Folder / File | Description |
+| Level | Folder / File | Description |
 | ----------- | ----------- | ----------- |
 | + | **BaatDiagramScripts** | A number of scripts which can be activated on a Diagram. Right-click in an empty space on the diagram and select the appropriate script from "*Specialize => Scripts*". |
 | ++ | *DImExExportConnectorsJAVA* | A JavaScript using the *ImExExportConnectorsJAVA* script to export Connector information to an Excel file for the Elements present on the Diagram selected. |
+| ++ | *DImExExportElementsJAVA* | A JavaScript using the *ImExExportConnectorsJAVA* script to export Element information to an Excel file for the Elements present on the Diagram selected. |
 | + | **BaatPackageScripts** | A number of scripts which can be activated on a Package. Right-click on a package and select the appropriate script from "*Specialize => Scripts*". |
 | ++ | *PImExExportConnectorsJAVA* | A JavaScript using the *ImExExportConnectorsJAVA* script to export Connector information to an Excel file for the Elements present in the Package selected. The script checks recursively all sub-packages as well. |
 | ++ | *ModelCountTaggedValuesVBS* | A VBScript to count the number of all Enum TaggedValues which are written to an Excel file including the date. Each time the script is run, the values for today are added or updated on the worksheet such that a history of values is created which can be processed by e.g. PowerBI. |
