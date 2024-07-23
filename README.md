@@ -23,3 +23,34 @@ A number of scripts for Sparx Enterprise Architect.
 | ++ | *ImExImportConnectorsJAVA* | A JavaScript based on the [EA Excel import-export](https://bellekens.com/ea-excel-import-export/) tool from Geert Bellekens. It contains some methods to import Connector information from an Excel file. |
 | ++ | *ImExImportElementsJAVA* | A JavaScript based on the [EA Excel import-export](https://bellekens.com/ea-excel-import-export/) tool from Geert Bellekens. It contains some methods to import Element information from an Excel file. |
 
+
+## Remarks
+
+These scripts are good enough for my needs. Feel free to reuse it, fork it, modify it, etc. but please mention it when you encounter any quircks or bugs or other discrepancies.
+
+
+## How to install
+
+There are several ways to install these scripts:
+1. Create empty script and copy/paste file contents
+1. Import xml file
+Check the EA User Guide for more information on [Scripting](https://sparxsystems.com/enterprise_architect_user_guide/16.1/add-ins___scripting/the_scripter_window.html).
+
+### Manual installation
+
+Follow these steps to install a package script from a source file:
+1. Create new Project Browser group "BaatPackageScripts"
+1. Create new JavaScript "ModelCountDuplicateTaggedValues"
+1. Open newly created script
+1. Open file "ModelCountDuplicateTaggedValues.js"
+1. Replace all existing code in the open script with the code in the JS file
+Repeat these steps for all files, check the group to put them in.
+The file "ImExScripts.xml" contains all scripts related to the Im/Export of Elements and Connectors, including the necessary lib scripts.
+
+### Import XML file
+
+Follow these steps to import a script from an XML file:
+1. Use menu "Settings => Transfer => Import Reference Data"
+1. Select the XML file to import, e.g. "ModelCountDuplicateTaggedValues.xml"
+1. Select "Automation Scripts" and import the contents of the XML file
+
