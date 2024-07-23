@@ -34,6 +34,7 @@ These scripts are good enough for my needs. Feel free to reuse it, fork it, modi
 There are several ways to install these scripts:
 1. Create empty script and copy/paste file contents
 1. Import xml file
+
 Check the EA User Guide for more information on [Scripting](https://sparxsystems.com/enterprise_architect_user_guide/16.1/add-ins___scripting/the_scripter_window.html).
 
 ### Manual installation
@@ -44,6 +45,7 @@ Follow these steps to install a package script from a source file:
 1. Open newly created script
 1. Open file "ModelCountDuplicateTaggedValues.js"
 1. Replace all existing code in the open script with the code in the JS file
+
 Repeat these steps for all files, check the group to put them in.
 The file "ImExScripts.xml" contains all scripts related to the Im/Export of Elements and Connectors, including the necessary lib scripts.
 
