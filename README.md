@@ -9,6 +9,7 @@ A number of scripts for Sparx Enterprise Architect.
 | ----------- | ----------- | ----------- |
 | + | **BaatDiagramScripts** | A number of scripts which can be activated on a Diagram. Right-click in an empty space on the diagram and select the appropriate script from "*Specialize => Scripts*". |
 | ++ | *DImExExportConnectorsJAVA* *DImExExportElementsJAVA* *DImExImportConnectorsJAVA* *DImExImportElementsJAVA* | A set of JavaScripts using the *ImExExport* scripts in *BaatScriptLib* to im/export Connector and Element information for the Elements present on the Diagram selected. |
+| ++ | *RefreshDynamicLegend* | Refresh the set of color definitions of all LegendElements present on the Diagram selected. |
 | + | **BaatPackageScripts** | A number of scripts which can be activated on a Package. Right-click on a package and select the appropriate script from "*Specialize => Scripts*". |
 | ++ | *PImExExportConnectorsJAVA* *PImExExportElementsJAVA* *PImExImportConnectorsJAVA* *PImExImportElementsJAVA* | A set of JavaScripts using the *ImExExport* scripts in *BaatScriptLib* to im/export Connector and Element information for the Elements present in the Package selected. The scripts check recursively all sub-packages as well. |
 | ++ | *ModelCountTaggedValuesVBS* | A VBScript to count the number of all Enum TaggedValues which are written to an Excel file including the date. Each time the script is run, the values for today are added or updated on the worksheet such that a history of values is created which can be processed by e.g. PowerBI. |

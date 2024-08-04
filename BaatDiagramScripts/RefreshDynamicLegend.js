@@ -2,20 +2,17 @@
 !INC Local Scripts.EAConstants-JavaScript
 
 /*
- * This code has been included from the default Diagram Script template.
+ * Script Name: RefreshDynamicLegend
+ * Author:      J de Baat
+ * Purpose:     Refresh the set of color definitions of all legend elements supporting all values occuring on the selected diagram
+ * Date:        04-08-2024
  *
  * For all LegendElements on the selected diagram:
  *   If TaggedValue filter
  *      Find all TaggedValues for this Value
  *      Update t_xref list of properties for this legend
  *   Refresh Diagram
- *
- *
- * Script Name: RefreshDynamicLegend
- * Author:      J de Baat
- * Purpose:     Refresh the set of color definitions of all legend elements supporting all values occuring on the selected diagram
- * Date:        27-07-2023
- */
+*/
 
 /*
  * A list of colors to use for generating the list of legend values
@@ -43,7 +40,7 @@ function ElementIsLegend( theElement )
 {
 	// Cast theElement to EA.Element so we get intellisense
 	var inputElement as EA.Element;
-	inputElement = theElement;
+	inputElement      = theElement;
 
 	return ( (inputElement.ObjectType == 4) && (inputElement.Subtype == 76) );
 
@@ -56,7 +53,7 @@ function GetLegendFilter( theElement )
 {
 	// Cast theElement to EA.Element so we get intellisense
 	var inputElement as EA.Element;
-	inputElement = theElement;
+	inputElement      = theElement;
 
 	// Find the TaggedValue in the string of format "*LegendTypeObj=Filter=" + "TaggedValue." + strLegendTaggedValue + ":;*"
 	var strLegendTaggedValue01 = inputElement.StyleEx.split("LegendTypeObj=Filter=");
@@ -198,17 +195,17 @@ function ProcessLegendElement( theElement )
 
 	// Cast theElement to EA.Element so we get intellisense
 	var inputElement as EA.Element;
-	currentElement = theElement;
+	currentElement    = theElement;
 
 	// Check whether the currentElement is a Legend
 	if ( ElementIsLegend( currentElement ) )
 	{
 		var strLegendFilterProperty = "";
-		var strLegendTaggedValues = "";
-		var strLegendProperty = "";
+		var strLegendTaggedValues   = "";
+		var strLegendProperty       = "";
 
 		strLegendFilterProperty = GetLegendFilter( currentElement );
-		strLegendTaggedValues = GetLegendTaggedValuesForProperty( strLegendFilterProperty );
+		strLegendTaggedValues   = GetLegendTaggedValuesForProperty( strLegendFilterProperty );
 
 		// Process the strLegendTaggedValues found
 		if ( strLegendTaggedValues.length > 0 ) {
@@ -240,11 +237,15 @@ function ProcessLegendElement( theElement )
  */
 function RefreshDynamicLegend()
 {
+
+	// Show the script output window
+	Repository.EnsureOutputVisible( "Script" );
+
+	Session.Output( "======================================= Started RefreshDynamicLegend " );
+
 	// Get a reference to the current diagram
 	var currentDiagram as EA.Diagram;
 	currentDiagram = Repository.GetCurrentDiagram();
-
-	Session.Output("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" );
 
 	if ( currentDiagram != null )
 	{
@@ -264,9 +265,9 @@ function RefreshDynamicLegend()
 			{
 				// Process the currentDiagramElement
 				var currentDiagramElement as EA.Element;
-				var currentElement as EA.Element;
-				currentDiagramElement = diagramObjects.GetAt( i );
-				currentElement = Repository.GetElementByID( currentDiagramElement.ElementID );
+				var currentElement        as EA.Element;
+				currentDiagramElement      = diagramObjects.GetAt( i );
+				currentElement             = Repository.GetElementByID( currentDiagramElement.ElementID );
 
 				// Process the currentElement when it is a Legend
 				ProcessLegendElement( currentElement );
@@ -278,7 +279,7 @@ function RefreshDynamicLegend()
 		else
 		{
 			// No objects on this diagram
-			Session.Output("No objects on this diagram" );
+			Session.Output("No objects on this diagram to be processed." );
 		}
 	}
 	else
@@ -286,7 +287,7 @@ function RefreshDynamicLegend()
 		Session.Prompt( "This script requires a diagram to be visible.", promptOK)
 	}
 
-	Session.Output("===========================================================================================" );
+	Session.Output( "======================================= Finished RefreshDynamicLegend " );
 
 }
 
