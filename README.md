@@ -9,6 +9,7 @@ A number of scripts for Sparx Enterprise Architect.
 | ----------- | ----------- | ----------- |
 | + | **BaatDiagramScripts** | A number of scripts which can be activated on a Diagram. Right-click in an empty space on the diagram and select the appropriate script from "*Specialize => Scripts*". |
 | ++ | *DImExExportConnectorsJAVA* *DImExExportElementsJAVA* *DImExImportConnectorsJAVA* *DImExImportElementsJAVA* | A set of JavaScripts using the *ImExExport* scripts in *BaatScriptLib* to im/export Connector and Element information for the Elements present on the Diagram selected. |
+| ++ | *DiagramAnalysisLayout* | Dynamically draw elements on the diagram as indicated by the TaggedValues defined in the selected element. |
 | ++ | *RefreshDynamicLegend* | Refresh the set of color definitions of all LegendElements present on the Diagram selected. |
 | + | **BaatPackageScripts** | A number of scripts which can be activated on a Package. Right-click on a package and select the appropriate script from "*Specialize => Scripts*". |
 | ++ | *PImExExportConnectorsJAVA* *PImExExportElementsJAVA* *PImExImportConnectorsJAVA* *PImExImportElementsJAVA* | A set of JavaScripts using the *ImExExport* scripts in *BaatScriptLib* to im/export Connector and Element information for the Elements present in the Package selected. The scripts check recursively all sub-packages as well. |
