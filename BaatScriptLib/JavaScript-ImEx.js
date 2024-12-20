@@ -1,13 +1,13 @@
 //[group=BaatScriptLib]
-!INC EAScriptLib.JavaScript-Logging
 !INC EAScriptLib.JavaScript-TaggedValue
+!INC BaatScriptLib.BaatScript-Logging
 
 
 /**
  * @file JavaScript-ImEx
  * This script library contains helper functions to assist with IMEX Import and Export of
- * Enterprise Architect Elements and Connectors using an Excel Workbook file.
- * This functionality is similar to the eaexcelimporter of Geert Bellekens. 
+ * Enterprise Architect Elements and Connectors using an Excel Workbook or CSV file.
+ * This functionality is similar to the eaexcelimporter of Geert Bellekens.
  * 
  * Functions in this library are split into three parts: Workbooks, Import and Export.
  * Functions that assist with IMEX Workbooks are prefixed with IMEXW,
@@ -16,28 +16,58 @@
  * IMEX Import can be performed by calling the function IMEXIHandleExcelImport().
  * IMEXIHandleExcelImport() requires the name of the WorkSheet containing the information and
  * that the function OnExcelRowImported() is defined in the user's script to be used as a callback
- * whenever row data is read from the IMEX file. The user defined OnExcelRowImported() can query for 
- * information about the current row through the functions EXCELIContainsColumn(), 
+ * whenever row data is read from the IMEX file. The user defined OnExcelRowImported() can query for
+ * information about the current row through the functions EXCELIContainsColumn(),
  * EXCELIGetColumnValueByName() and EXCELIGetColumnValueByNumber().
  *
- * To perform an IMEX export, the user must call IMEXEHandleExcelExport() which starts an export 
- * session. The call to IMEXEHandleExcelExport() specifies the file name to export to, and the set of 
- * columns that will be exported. Once the session has been initialized with a call to 
- * IMEXEExportInitialize(), the user may continually call IMEXEExportRow() to export a row to file. 
- * Once all rows have been added, the export session is closed by calling IMEXEExportFinalize(). 
+ * To perform an IMEX export, the user must call IMEXEHandleExcelExport() which starts an export
+ * session. The call to IMEXEHandleExcelExport() specifies the file name to export to, and the set of
+ * columns that will be exported. Once the session has been initialized with a call to
+ * IMEXEExportInitialize(), the user may continually call IMEXEExportRow() to export a row to file.
+ * Once all rows have been added, the export session is closed by calling IMEXEExportFinalize().
  *
- * @author J. de Baat, based on JavaScript - CSV by Sparx Systems
- * @date 2024-07-13
+ * @author	J. de Baat, based on JavaScript - CSV by Sparx Systems
+ * @date	20-12-2024
  */
 
 const strGlobalEAPackageName        = "ImEx Package";
 const strGlobalEADiagramName        = "ImEx Diagram";
 const strDefaultElementsFileName    = "ImExElements.xlsx";
 const strDefaultConnectorsFileName  = "ImExConnectors.xlsx";
+const strDefaultAttributesFileName  = "ImExAttributes.xlsx";
 const strDefaultElementsSheetName   = "ImEx_Elements";
 const strDefaultConnectorsSheetName = "ImEx_Connectors";
+const strDefaultAttributesSheetName = "ImEx_Attributes";
 const strTaggedValuesPrefix         = "TAG_";
 const strNoClientConnector          = "ImEx_NoClientConnector";
+
+const ImExColumnAttributeName       = "AttributeName";		// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnAttributeType       = "AttributeType";		// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnClassGUID           = "CLASSGUID";			// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnClassType           = "CLASSTYPE";			// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnConnectorID         = "Connector_ID";		// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnConnectorGUID       = "CONNECTORGUID";		// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnConnectorType       = "Connector_Type";		// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnCTOClassGUID        = "CTO_CLASSGUID";		// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnCSOClassGUID        = "CSO_CLASSGUID";		// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnDirection           = "Direction";			// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnEndObjectID         = "End_Object_ID";		// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnForeignKey          = "ForeignKey";			// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnIsCollection        = "IsCollection";		// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnIsOrdered           = "IsOrdered";			// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnIsStatic            = "IsStatic";			// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnName                = "Name";				// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnNotes               = "Notes";				// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnLength              = "Length";				// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnPrimaryKey          = "PrimaryKey";			// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnRouteStyle          = "RouteStyle";			// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnStartObjectID       = "Start_Object_ID";	// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnStereotype          = "Stereotype";			// Definition of the Column Name used as key for the ImEx Modules
+const ImExColumnUnique              = "Unique";				// Definition of the Column Name used as key for the ImEx Modules
+
+const ConnectorRouteStyleDefault    = "3";					// Default for the Column used for the ImEx Modules
+const ConnectorStereotypeDefault    = "trace";				// Default for the Column used for the ImEx Modules
+const ConnectorTypeDefault          = "Dependency";			// Default for the Column used for the ImEx Modules
 
 const strImExStartPackage           = "Package";
 const strImExStartDiagram           = "Diagram";
@@ -69,15 +99,15 @@ function IMEXGGetValueWithoutPrefix( theValue, thePrefix )
 	try {
 
 		const thePrefixLength = thePrefix.length;
-		// Session.Output("IMEXGGetValueWithoutPrefix started with thePrefix : " + thePrefix + ", length = " + thePrefixLength + " !" );
+		// BLOGTrace("IMEXGGetValueWithoutPrefix started with thePrefix : " + thePrefix + ", length = " + thePrefixLength + " !" );
 
 		//	If theValue starts with thePrefix then return value without prefix
 		if ( theValue.substring( 0, thePrefixLength ).toLowerCase() == thePrefix.toLowerCase() ) {
-			// Session.Output( "IMEXGGetValueWithoutPrefix found theValue.substring(" + thePrefixLength + ")= " + theValue.substring( thePrefixLength ) + " !" );
+			// BLOGTrace( "IMEXGGetValueWithoutPrefix found theValue.substring(" + thePrefixLength + ")= " + theValue.substring( thePrefixLength ) + " !" );
 			return theValue.substring( thePrefixLength );
 		}
 	} catch (err) {
-		LOGError( "IMEXGGetValueWithoutPrefix catched error " + err.message + "!" );
+		BLOGError( "IMEXGGetValueWithoutPrefix catched error " + err.message + "!" );
 		return "";
 	}
 
@@ -97,22 +127,22 @@ function IMEXGCheckArchiMateStereotype( theStereotype )
 
 		// Check whether theStereotype is available
 		if ( curStereotype == null ) {
-			// Session.Output("IMEXGCheckArchiMateStereotype( " + theStereotype + " ) DID NOT update theStereotype to " + curStereotype + "!!!" );
+			// BLOGTrace("IMEXGCheckArchiMateStereotype( " + theStereotype + " ) DID NOT update theStereotype to " + curStereotype + "!!!" );
 			return curStereotype;
 		}
 
 		// Check whether theStereotype should be prefixed
 		if ( curStereotype.substring( 0, strArchiMatePrefix.length ).toLowerCase() == strArchiMatePrefix.toLowerCase() ) {
 			curStereotype = strArchiMate3Prefix + curStereotype;
-			// Session.Output("IMEXGCheckArchiMateStereotype( " + theStereotype + " ) updated theStereotype to " + curStereotype + "!!!" );
+			// BLOGTrace("IMEXGCheckArchiMateStereotype( " + theStereotype + " ) updated theStereotype to " + curStereotype + "!!!" );
 		} else {
-			// Session.Output("IMEXGCheckArchiMateStereotype( " + theStereotype + " ) DID NOT update theStereotype to " + curStereotype + "!!!" );
+			// BLOGTrace("IMEXGCheckArchiMateStereotype( " + theStereotype + " ) DID NOT update theStereotype to " + curStereotype + "!!!" );
 		}
 
 		return curStereotype;
 
 	} catch (err) {
-		LOGError( "IMEXGCheckArchiMateStereotype catched error " + err.message + "!" );
+		BLOGError( "IMEXGCheckArchiMateStereotype catched error " + err.message + "!" );
 		return theStereotype;
 	}
 }
@@ -167,10 +197,18 @@ function IMEXGCheckConnectorDirection( theConnector, theDirection )
 		var curConnector       as EA.Connector;
 		curConnector            = theConnector;
 
-		// Check whether theConnector and theStereotype are available
+		// Check whether theConnector and theDirection are available
 		if ( ( theConnector == null ) || ( theDirection == null ) ) {
 			return;
 		}
+
+		// Check whether theConnector and theDirection are equal
+		if ( curConnector.Direction == theDirection ) {
+			BLOGTrace( "IMEXGCheckConnectorDirection EQUAL curConnector(" + curConnector.ConnectorID + ").Direction= " + curConnector.Direction + ", theDirection= " + theDirection + "!!!" );
+			return;
+		}
+
+		BLOGTrace( "IMEXGCheckConnectorDirection curConnector(" + curConnector.ConnectorID + ").Direction= " + curConnector.Direction + ", theDirection= " + theDirection + "!!!" );
 
 		// Check what to use as Starting point for export
 		switch ( theDirection ) {
@@ -216,10 +254,11 @@ function IMEXGCheckConnectorDirection( theConnector, theDirection )
 				break;
 			}
 		}
-		// Session.Output( "IMEXGCheckConnectorDirection curConnector(" + curConnector.Name + ").Direction set to " + curConnector.Direction + " based on " + EXCELIGetColumnValueByName("Direction") + ", Navigable: ClientEnd= " + curConnector.ClientEnd.Navigable + ", SupplierEnd= " + curConnector.SupplierEnd.Navigable + "!!!" );
+		curConnector.Update();
+		BLOGTrace( "IMEXGCheckConnectorDirection curConnector(" + curConnector.ConnectorID + ").Direction set to " + curConnector.Direction + " based on " + theDirection + ", Navigable: ClientEnd= " + curConnector.ClientEnd.Navigable + ", SupplierEnd= " + curConnector.SupplierEnd.Navigable + "!!!" );
 
 	} catch (err) {
-		LOGError( "IMEXGCheckConnectorDirection catched error " + err.message + "!" );
+		BLOGError( "IMEXGCheckConnectorDirection catched error " + err.message + "!" );
 	}
 }
 
@@ -256,14 +295,14 @@ function IMEXGCheckOrAddPackageDiagram( thePackage, thePackageDiagramName )
 
 			}
 
-			Session.Output( "CheckOrAddPackageDiagram found " + curDiagram.Name + " as part of PackageID=" + thePackage.PackageID + " !" );
+			BLOGTrace( "CheckOrAddPackageDiagram found " + curDiagram.Name + " as part of PackageID=" + thePackage.PackageID + " !" );
 			return curDiagram;
 		} else {
-			LOGError( "CheckOrAddPackageDiagram could NOT add PackageDiagram " + thePackageDiagramName + "!" );
+			BLOGError( "CheckOrAddPackageDiagram could NOT add PackageDiagram " + thePackageDiagramName + "!" );
 		}
 
 	} catch (err) {
-		LOGError( "IMEXGCheckOrAddPackageDiagram catched error " + err.message + "!" );
+		BLOGError( "IMEXGCheckOrAddPackageDiagram catched error " + err.message + "!" );
 	}
 
 	return null;
@@ -278,30 +317,30 @@ function IMEXGGetAndCheckGlobalVariables()
 
 	//	Check objGlobalEAPackage and objGlobalEADiagram
 	if ( ( objGlobalEAPackage == null ) && ( objGlobalEADiagram == null ) ) {
-		LOGError( "Either objGlobalEAPackage OR objGlobalEADiagram should be available!" );
+		BLOGError( "Either objGlobalEAPackage OR objGlobalEADiagram should be available!" );
 		return false;
 	}
 
 	//	Check objGlobalEADiagram, get it from objGlobalEAPackage which should not be nothing
 	if ( objGlobalEADiagram == null ) {
 		objGlobalEADiagram = IMEXGCheckOrAddPackageDiagram( objGlobalEAPackage, strGlobalEADiagramName );
-		// Session.Output( "GetAndCheckGlobalVariables found " + objGlobalEADiagram.Name + " as part of objGlobalEAPackage " + objGlobalEAPackage.Name + " !" );
+		// BLOGTrace( "GetAndCheckGlobalVariables found " + objGlobalEADiagram.Name + " as part of objGlobalEAPackage " + objGlobalEAPackage.Name + " !" );
 	}
 
 	//	Check objGlobalEAPackage, get it from objGlobalEADiagram which should not be nothing
 	if ( objGlobalEAPackage == null ) {
 		try {
 			objGlobalEAPackage = Repository.GetPackageByID( objGlobalEADiagram.PackageID );
-			// Session.Output( "GetAndCheckGlobalVariables found " + objGlobalEAPackage.Name + " as parent of objGlobalEADiagram " + objGlobalEADiagram.Name + " !" );
+			// BLOGTrace( "GetAndCheckGlobalVariables found " + objGlobalEAPackage.Name + " as parent of objGlobalEADiagram " + objGlobalEADiagram.Name + " !" );
 		} catch (err) {
-			LOGError( "IMEXGGetAndCheckGlobalVariables catched error " + err.message + "!" );
+			BLOGError( "IMEXGGetAndCheckGlobalVariables catched error " + err.message + "!" );
 			objGlobalEAPackage = null;
 		}
 	}
 
 	//	Check objGlobalEAPackage and objGlobalEADiagram again
 	if ( ( objGlobalEAPackage == null ) || ( objGlobalEADiagram == null ) ) {
-		LOGError( "Both objGlobalEAPackage AND objGlobalEADiagram should be available!" );
+		BLOGError( "Both objGlobalEAPackage AND objGlobalEADiagram should be available!" );
 		return false;
 	}
 
@@ -333,7 +372,7 @@ function IMEXGGetAndCheckPackageObject()
 				// Code for when a package is selected
 				objGlobalEAPackage = Repository.GetTreeSelectedObject();
 				strImExStart = strImExStartPackage;
-				Session.Output("IMEXGGetAndCheckPackageObject Found Package : " + objGlobalEAPackage.Name + "!" );
+				BLOGTrace("IMEXGGetAndCheckPackageObject Found Package : " + objGlobalEAPackage.Name + "!" );
 
 				break;
 			}
@@ -342,21 +381,21 @@ function IMEXGGetAndCheckPackageObject()
 				// Code for when a diagram is selected
 				objGlobalEADiagram = Repository.GetTreeSelectedObject();
 				strImExStart = strImExStartDiagram;
-				Session.Output("IMEXGGetAndCheckPackageObject Found Diagram : " + objGlobalEADiagram.Name + "!" );
+				BLOGTrace("IMEXGGetAndCheckPackageObject Found Diagram : " + objGlobalEADiagram.Name + "!" );
 
 				break;
 			}
 			default:
 			{
 				// Error message
-				// Session.Output( "This script does not support items of this type." );
+				BLOGError( "This script does not support items of this type." );
 				Session.Prompt( "This script does not support items of this type.", promptOK );
 				return false;
 				break;
 			}
 		}
 	} catch (err) {
-		LOGError( "IMEXGGetAndCheckPackageObject catched error " + err.message + "!" );
+		BLOGError( "IMEXGGetAndCheckPackageObject catched error " + err.message + "!" );
 		return false;
 	}
 
@@ -383,7 +422,7 @@ function IMEXGGetAndCheckDiagram()
 			// Prepare some global variables
 			objGlobalEAPackage = null;
 			strImExStart       = strImExStartDiagram;
-			Session.Output("IMEXGGetAndCheckDiagram Found Diagram : " + objGlobalEADiagram.Name + "!" );
+			BLOGTrace("IMEXGGetAndCheckDiagram Found Diagram : " + objGlobalEADiagram.Name + "!" );
 
 			// Get and check the global variables
 			const  validGlobalVariables = IMEXGGetAndCheckGlobalVariables();
@@ -395,7 +434,7 @@ function IMEXGGetAndCheckDiagram()
 			Session.Prompt( "This script requires a diagram to be visible.", promptOK)
 		}
 	} catch (err) {
-		LOGError( "IMEXGGetAndCheckDiagram catched error " + err.message + "!" );
+		BLOGError( "IMEXGGetAndCheckDiagram catched error " + err.message + "!" );
 	}
 
 	return false;
@@ -427,7 +466,7 @@ function IMEXIHandleExcelImport( theExcelSheetName /* : String */ ) /* : String 
 	}
 
 	// objExcelApplication STARTED
-	// Session.Output("ImExImportElements started Excel.Application !" );
+	// BLOGTrace("ImExImportElements started Excel.Application !" );
 
 	// Get the EXCEL fileName for this Import session, true for readonly.
 	let curExcelFileName = EXCELWGetFileName( strDefaultElementsFileName, true );
@@ -457,14 +496,14 @@ function IMEXIHandleExcelImport( theExcelSheetName /* : String */ ) /* : String 
 			try {
 				Repository.ReloadDiagram( objGlobalEADiagram.DiagramID );
 			} catch (err) {
-				LOGError( "IMEXIHandleExcelImport catched error " + err.message + "!" );
+				BLOGError( "IMEXIHandleExcelImport catched error " + err.message + "!" );
 			}
 			break;
 		}
 		default:
 		{
 			// Show Error message
-			Session.Output( "This script does not support items of this type!" );
+			BLOGTrace( "This script does not support items of this type!" );
 		}
 	}
 
@@ -548,13 +587,13 @@ function IMEXISetStandardElementFieldValues( elementForRow /* : EA.Element */ ) 
 
 				if ( EXCELIContainsColumn("Name") )
 				{
-					// Session.Output( "IMEXISetStandardElementFieldValues theElement.Name = " + theElement.Name + ", set to:" + EXCELIGetColumnValueByName("Name") + "!!!" );
+					// BLOGTrace( "IMEXISetStandardElementFieldValues theElement.Name = " + theElement.Name + ", set to:" + EXCELIGetColumnValueByName("Name") + "!!!" );
 					theElement.Name = EXCELIGetColumnValueByName("Name");
 				}
 
 				if ( EXCELIContainsColumn("Notes") )
 				{
-					// Session.Output( "IMEXISetStandardElementFieldValues theElement.Name = " + theElement.Name + ", Notes set to:" + EXCELIGetColumnValueByName("Notes") + "!!!" );
+					// BLOGTrace( "IMEXISetStandardElementFieldValues theElement.Name = " + theElement.Name + ", Notes set to:" + EXCELIGetColumnValueByName("Notes") + "!!!" );
 					theElement.Notes = EXCELIGetColumnValueByName("Notes");
 				}
 
@@ -577,12 +616,12 @@ function IMEXISetStandardElementFieldValues( elementForRow /* : EA.Element */ ) 
 				theElement.Update();
 			}
 		} catch (err) {
-			LOGError( "IMEXISetStandardElementFieldValues catched error " + err.message + "!" );
+			BLOGError( "IMEXISetStandardElementFieldValues catched error " + err.message + "!" );
 		}
 	}
 	else
 	{
-		LOGWarning( "No import currently running. IMEXISetStandardElementFieldValues() should only be called from within OnExcelRowImported()" );		
+		BLOGWarning( "No import currently running. IMEXISetStandardElementFieldValues() should only be called from within OnExcelRowImported()" );		
 	}
 }
 
@@ -609,13 +648,13 @@ function IMEXISetElementTaggedValues( elementForRow /* : EA.Element */ ) /* : vo
 
 				// Process all TaggedValues in excelImportColumnTagsMap
 				excelImportColumnTagsMap.forEach(function(value, key) {
-						// Session.Output( "IMEXISetElementTaggedValues excelImportColumnTagsMap(" + value + "," + key + ") TESTING for curElement " + curElement.Name + "!!!" );
+						// BLOGTrace( "IMEXISetElementTaggedValues excelImportColumnTagsMap(" + value + "," + key + ") TESTING for curElement " + curElement.Name + "!!!" );
 
 						if ( EXCELIContainsColumn( key ) )
 						{
 							// If TaggedValue in import, add it to the curElement
 							TVSetElementTaggedValue( curElement, value, EXCELIGetColumnValueByName( key ), true );
-							// Session.Output( "IMEXISetElementTaggedValues excelImportColumnTagsMap(" + value + "," + key + ") PROCESSING for curElement " + curElement.Name + "!!!" );
+							// BLOGTrace( "IMEXISetElementTaggedValues excelImportColumnTagsMap(" + value + "," + key + ") PROCESSING for curElement " + curElement.Name + "!!!" );
 						}
 					});
 
@@ -623,12 +662,58 @@ function IMEXISetElementTaggedValues( elementForRow /* : EA.Element */ ) /* : vo
 				curElement.Update();
 			}
 		} catch (err) {
-			LOGError( "IMEXISetElementTaggedValues catched error " + err.message + "!" );
+			BLOGError( "IMEXISetElementTaggedValues catched error " + err.message + "!" );
 		}
 	}
 	else
 	{
-		LOGWarning( "No import currently running. IMEXISetElementTaggedValues() should only be called from within OnExcelRowImported()" );		
+		BLOGWarning( "No import currently running. IMEXISetElementTaggedValues() should only be called from within OnExcelRowImported()" );		
+	}
+}
+
+/**
+ * Sets the TaggedValues on the specified Connector if there is a corresponding value for them in the 
+ * current row.
+ *
+ * @param[in] connectorForRow (EA.Connector) The connector whose properties will be set with the current row's 
+ * values
+ */
+function IMEXISetConnectorTaggedValues( connectorForRow /* : EA.Connector */ ) /* : void */
+{
+	if ( excelImportIsImporting )
+	{
+		try {
+			var curConnector     as EA.Connector;
+			var curConnectorTag  as EA.TaggedValue;
+			var curConnectorTags as EA.Collection;
+
+			curConnector = connectorForRow;
+
+			if ( curConnector != null )
+			{
+
+				// Process all TaggedValues in excelImportColumnTagsMap
+				excelImportColumnTagsMap.forEach(function(value, key) {
+						// BLOGTrace( "IMEXISetConnectorTaggedValues excelImportColumnTagsMap(" + value + "," + key + ") TESTING for curConnector " + curConnector.Name + "!!!" );
+
+						if ( EXCELIContainsColumn( key ) )
+						{
+							// If TaggedValue in import, add it to the curConnector
+							TVSetElementTaggedValue( curConnector, value, EXCELIGetColumnValueByName( key ), true );
+							// BLOGTrace( "IMEXISetConnectorTaggedValues excelImportColumnTagsMap(" + value + "," + key + ") PROCESSING for curConnector " + curConnector.Name + "!!!" );
+						}
+					});
+
+				// Commit the updated values
+				curConnector.Update();
+			}
+		} catch (err) {
+			BLOGError( "IMEXISetConnectorTaggedValues catched error " + err.message + "!" );
+		}
+	}
+	else
+	{
+		BLOGWarning( "No import currently running. IMEXISetConnectorTaggedValues() should only be called from within OnExcelRowImported()" );		
 	}
 }
 
@@ -650,15 +735,18 @@ function IMEXISetStandardConnectorFieldValues( connectorForRow /* : EA.Connector
 			// Process all elements in the import values found
 			if ( curConnector != null )
 			{
-				if ( EXCELIContainsColumn("Name") )
+				if ( EXCELIContainsColumn( ImExColumnName ) )
 				{
-					// Session.Output( "IMEXISetStandardConnectorFieldValues curConnector.Name = " + curConnector.Name + ", set to:" + EXCELIGetColumnValueByName("Name") + "!!!" );
-					curConnector.Name = EXCELIGetColumnValueByName("Name");
+					// BLOGTrace( "IMEXISetStandardConnectorFieldValues curConnector.Name = " + curConnector.Name + ", set to:" + EXCELIGetColumnValueByName("Name") + "!!!" );
+					let curConnectorName = EXCELIGetColumnValueByName( ImExColumnName );
+					if ( ( curConnectorName != null ) && ( curConnectorName != "" ) ) {
+						curConnector.Name = curConnectorName;
+					}
 				}
 
-				if ( EXCELIContainsColumn("Connector_Type") )
+				if ( EXCELIContainsColumn( ImExColumnConnectorType ) )
 				{
-					curConnector.Type = EXCELIGetColumnValueByName("Connector_Type");
+					curConnector.Type = EXCELIGetColumnValueByName( ImExColumnConnectorType );
 				}
 
 				if ( EXCELIContainsColumn("Direction") )
@@ -668,9 +756,12 @@ function IMEXISetStandardConnectorFieldValues( connectorForRow /* : EA.Connector
 
 				if ( EXCELIContainsColumn("Stereotype") )
 				{
-					// Set both the curConnector.Stereotype and the curConnector.ClientEnd.Aggregation
-					curConnector.Stereotype            = EXCELIGetColumnValueByName( "Stereotype" );
-					curConnector.ClientEnd.Aggregation = IMEXGCheckArchiMateStereotypeConnector( curConnector.Stereotype );
+					let curConnectorStereotype = EXCELIGetColumnValueByName( ImExColumnStereotype );
+					if ( ( curConnectorStereotype != null ) && ( curConnectorStereotype != "" ) ) {
+						// Set both the curConnector.Stereotype and the curConnector.ClientEnd.Aggregation
+						curConnector.Stereotype            = curConnectorStereotype;
+						curConnector.ClientEnd.Aggregation = IMEXGCheckArchiMateStereotypeConnector( curConnector.Stereotype );
+					}
 				}
 
 				if ( EXCELIContainsColumn("Notes") )
@@ -687,12 +778,12 @@ function IMEXISetStandardConnectorFieldValues( connectorForRow /* : EA.Connector
 				curConnector.Update();
 			}
 		} catch (err) {
-			LOGError( "IMEXISetStandardConnectorFieldValues catched error " + err.message + "!" );
+			BLOGError( "IMEXISetStandardConnectorFieldValues catched error " + err.message + "!" );
 		}
 	}
 	else
 	{
-		LOGWarning( "No import currently running. IMEXISetStandardElementFieldValues() should only be called from within OnExcelRowImported()" );		
+		BLOGWarning( "No import currently running. IMEXISetStandardElementFieldValues() should only be called from within OnExcelRowImported()" );		
 	}
 }
 
@@ -727,16 +818,16 @@ function IMEXIGetNewConnectorStartOrEnd( connectorForRow /* : EA.Connector */, c
 						newElement = GetElementByID( newConnectorElementID );
 						return newElement;
 					}
-					// Session.Output( "IMEXIGetNewConnectorStartOrEnd could NOT find newConnectorElementID = " + newConnectorElementID + " for curConnector.ConnectorID:" + curConnector.ConnectorID + "!!!" );
+					// BLOGTrace( "IMEXIGetNewConnectorStartOrEnd could NOT find newConnectorElementID = " + newConnectorElementID + " for curConnector.ConnectorID:" + curConnector.ConnectorID + "!!!" );
 				}
 			}
 		} catch (err) {
-			LOGError( "IMEXIGetNewConnectorStartOrEnd catched error " + err.message + "!" );
+			BLOGError( "IMEXIGetNewConnectorStartOrEnd catched error " + err.message + "!" );
 		}
 	}
 	else
 	{
-		LOGWarning( "No import currently running. IMEXISetStandardElementFieldValues() should only be called from within OnExcelRowImported()" );		
+		BLOGWarning( "No import currently running. IMEXISetStandardElementFieldValues() should only be called from within OnExcelRowImported()" );		
 	}
 
 	return null;
@@ -767,7 +858,7 @@ function IMEXEHandleExcelExport( theExcelSheetName /* : String */ ) /* : String 
 	}
 
 	// objExcelApplication STARTED
-	// Session.Output("IMEXEHandleExcelExport started Excel.Application!" );
+	// BLOGTrace("IMEXEHandleExcelExport started Excel.Application!" );
 
 	// Get the EXCEL fileName for this Export session, false for not readonly.
 	let curExcelFileName = EXCELWGetFileName( strDefaultElementsFileName, false );
@@ -937,7 +1028,7 @@ function IMEXEGetStandardElementFieldValues( element /* : EA.Element */ ) /* : M
 		valueMap.set( "Visibility", theElement.Visibility );
 
 	} catch (err) {
-		LOGError( "IMEXEGetStandardElementFieldValues catched error " + err.message + "!" );
+		BLOGError( "IMEXEGetStandardElementFieldValues catched error " + err.message + "!" );
 		valueMap = null;
 	}
 
@@ -1002,7 +1093,7 @@ function IMEXEGetStandardConnectorFieldValues( element /* : EA.Element */, conne
 		valueMap.set( "CTO_Notes", theElementSupplier.Notes );
 
 	} catch (err) {
-		LOGError( "IMEXEGetStandardConnectorFieldValues catched error " + err.message + "!" );
+		BLOGError( "IMEXEGetStandardConnectorFieldValues catched error " + err.message + "!" );
 		valueMap = null;
 	}
 
@@ -1039,7 +1130,45 @@ function IMEXEGetElementTaggedValues( map /* : Map */, element /* : EA.Element *
 		}
 
 	} catch (err) {
-		LOGError( "IMEXEGetElementTaggedValues catched error " + err.message + "!" );
+		BLOGError( "IMEXEGetElementTaggedValues catched error " + err.message + "!" );
+		valueMap = map;
+	}
+
+	return valueMap;
+}
+
+/**
+ * Creates a Value Map of standard property names/values for the specified connector. This Value Map 
+ * can be used as the valueMap parameter when calling the ExportRow() function.
+ *
+ * @param[in] connector (EA.Connector) The connector to compile the Value Map for
+ *
+ * @return A Value Map populated with the provided connector's values.
+ */
+function IMEXEGetConnectorTaggedValues( map /* : Map */, connector /* : EA.Connector */ ) /* : Map */
+{
+
+	let valueMap = map;
+
+	try {
+
+		var curConnector     as EA.Connector;
+		var curConnectorTag  as EA.TaggedValue;
+		var curConnectorTags as EA.Collection;
+
+		curConnector = connector;
+
+		// Process all curConnectorTags in curConnector
+		curConnectorTags = curConnector.TaggedValues;
+		let curConnectorTagsCount = curConnectorTags.Count;
+		for ( let i = 0 ; i < curConnectorTagsCount ; i++ )
+		{
+			curConnectorTag = curConnectorTags.GetAt( i );
+			valueMap.set( strTaggedValuesPrefix + curConnectorTag.Name, curConnectorTag.Value );
+		}
+
+	} catch (err) {
+		BLOGError( "IMEXEGetConnectorTaggedValues catched error " + err.message + "!" );
 		valueMap = map;
 	}
 
@@ -1082,7 +1211,7 @@ function IMEXEGetStandardAttributeFieldValues( element /* : EA.Element */, attri
 		valueMap.set( "Visibility", theAttribute.Visibility );
 
 	} catch (err) {
-		LOGError( "IMEXEGetStandardAttributeFieldValues catched error " + err.message + "!" );
+		BLOGError( "IMEXEGetStandardAttributeFieldValues catched error " + err.message + "!" );
 		valueMap = null;
 	}
 

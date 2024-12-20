@@ -1,13 +1,13 @@
 //[group=BaatScriptLib]
-!INC EAScriptLib.JavaScript-Logging
+!INC BaatScriptLib.BaatScript-Logging
 
 /**
  * @file JavaScript-Connector 
  * This script library contains helper functions for working with Connectors. Functions 
  * provided by this module are identified by the prefix CON.
  *
- * @author J. de Baat, based on JavaScript-TaggedValue by Sparx Systems
- * @date 2024-07-13
+ * @author	J. de Baat, based on JavaScript-TaggedValue by Sparx Systems
+ * @date	20-12-2024
  */
 
 /**
@@ -34,21 +34,30 @@ function CONGetElementConnectorByData( theElement /* : EA.Element */, theClientI
 		var curElementConnectors as EA.Collection;
 		var curConnector         as EA.Connector;
 
-		curElement           = theElement;
-		curElementConnectors = curElement.Connectors;
-
-		// Check all element Connectors against data to find
-		for ( var i = 0 ; i < curElementConnectors.Count ; i++ )
+		try
 		{
-			curConnector = curElementConnectors.GetAt( i );
-			if ( ( curConnector.ClientID   == theClientID ) &&
-				 ( curConnector.SupplierID == theSupplierID ) &&
-				 ( ( "" === theType ) || ( curConnector.Type == theType ) ) ) 
+
+			curElement           = theElement;
+			curElementConnectors = curElement.Connectors;
+
+			// Check all element Connectors against data to find
+			let curElementConnectorsCount = curElementConnectors.Count;
+			for ( var i = 0 ; i < curElementConnectorsCount ; i++ )
 			{
-				// Connector found so clean up memory and return object
-				curElementConnectors = null;
-				return curConnector;
+				curConnector = curElementConnectors.GetAt( i );
+				if ( ( curConnector.ClientID   == theClientID ) &&
+					 ( curConnector.SupplierID == theSupplierID ) &&
+					 ( ( "" === theType ) || ( curConnector.Type == theType ) ) ) 
+				{
+					// Connector found so clean up memory and return object
+					curElementConnectors = null;
+					return curConnector;
+				}
 			}
+		}
+		catch(catch_err)
+		{
+			BLOGError("CONGetElementConnectorByData found Error: " + catch_err + "!!!" );
 		}
 
 		// Clean up memory
@@ -84,52 +93,71 @@ function CONSetElementConnector( theElementClient /* : EA.Element */, theElement
 		var curElementConnectors as EA.Collection;
 		var curConnector         as EA.Connector;
 
-		curElementClient         = theElementClient;
-		curElementSupplier       = theElementSupplier;
-		curConnector             = null;
-
 		const theConnectorDirection = "Unspecified";
 
-		// Check all Connectors in curElementClient whether the requested Connector already exists
-		if ( skipDuplicate ) {
-			curConnector         = CONGetElementConnectorByData( curElementClient, curElementClient.ElementID, curElementSupplier.ElementID, theType );
-		}
-
-		// If curConnector is not found, create a new Connector between curElementClient and curElementSupplier
-		if ( curConnector == null )
+		try
 		{
 
-			curElementConnectors = curElementClient.Connectors;
-			curConnector         = curElementConnectors.AddNew( curElementClient.Name, theType );
+			curElementClient   = theElementClient;
+			curElementSupplier = theElementSupplier;
+			curConnector       = null;
 
-			// If curConnector is added, set the attributes
-			if ( curConnector != null )
+			// Check all Connectors in curElementClient whether the requested Connector already exists
+			if ( skipDuplicate ) {
+				curConnector   = CONGetElementConnectorByData( curElementClient, curElementClient.ElementID, curElementSupplier.ElementID, theType );
+			}
+
+			BLOGTrace("CONSetElementConnector testing Connector between Client(" + curElementClient.ElementID + ") and Supplier(" + curElementSupplier.ElementID + ") for Type " + theType + "!!!" );
+
+			// If curConnector is not found, create a new Connector between curElementClient and curElementSupplier
+			if ( curConnector == null )
 			{
-				curConnector.Name       = "";     // Reset the dummy name as needed for AddNew
-				curConnector.ClientID   = curElementClient.ElementID;
-				curConnector.SupplierID = curElementSupplier.ElementID;
-				curConnector.Direction  = theConnectorDirection;
-				curConnector.Type       = theType;
 
-				// Commit changes to the Repository
+				curElementConnectors = curElementClient.Connectors;
+				curConnector         = curElementConnectors.AddNew( curElementClient.Name, theType );
 				curConnector.Update();
 				curElementConnectors.Refresh();
-				curElementClient.Update();
-				curElementSupplier.Update();
 
+				// If curConnector is added, set the attributes
+				if ( curConnector != null )
+				{
+					curConnector.Name       = "";     // Reset the dummy name as needed for AddNew
+					curConnector.ClientID   = curElementClient.ElementID;
+					curConnector.SupplierID = curElementSupplier.ElementID;
+					curConnector.Direction  = theConnectorDirection;
+					curConnector.Type       = theType;
+
+					// Commit changes to the Repository
+					curConnector.Update();
+					curElementConnectors.Refresh();
+					curElementClient.Update();
+					curElementSupplier.Update();
+					BLOGDebug("CONSetElementConnector created new Connector(" + curConnector.ConnectorID + ") between Client(" + curElementClient.ElementID + ") and Supplier(" + curElementSupplier.ElementID + ") for Type " + theType + "!!!" );
+					return curConnector;
+
+				} else {
+					BLOGError("CONSetElementConnector could NOT create new Connector between Client(" + curElementClient.ElementID + ") and Supplier(" + curElementSupplier.ElementID + ") for Type " + theType + "!!!" );
+					return null;
+				}
 			} else {
-				LOGError("CONSetElementConnector could NOT create new Connector between Client(" + curElementClient.ElementID + ") and Supplier(" + curElementSupplier.ElementID + ") for Type " + theType + "!!!" );
-				return null;
+				BLOGDebug("CONSetElementConnector skipped create duplicate Connector between Client(" + curElementClient.ElementID + ") and Supplier(" + curElementSupplier.ElementID + ") for Type " + theType + "!!!" );
+				return curConnector;
 			}
-		} else {
-			LOGError("CONSetElementConnector skipped create duplicate Connector between Client(" + curElementClient.ElementID + ") and Supplier(" + curElementSupplier.ElementID + ") for Type " + theType + "!!!" );
+
+			// Return the curConnector found or added
+			BLOGDebug("CONSetElementConnector returns found Connector(" + curConnector.ConnectorID + ") between Client(" + curElementClient.ElementID + ") and Supplier(" + curElementSupplier.ElementID + ") for Type " + theType + "!!!" );
+			return curConnector;
+		}
+		catch(catch_err)
+		{
+			BLOGError("CONSetElementConnector found Error: " + catch_err + "!!!" );
 			return null;
 		}
 
-		// Return the curConnector found or added
-		return curConnector;
-
 	}
+
+	return null;
+
 }
 
 /**
@@ -146,61 +174,70 @@ function CONDeleteConnectorByGUID( theConnectorGUID /* : String */ ) /* : void *
 	var curElementClient   as EA.Element;
 	var curElementSupplier as EA.Element;
 
-	// Find the curConnectorGUID to identify the Connector
-	let curConnectorGUID = theConnectorGUID;
-	if ( curConnectorGUID == null ) {
-		// Session.Output( "CONDeleteConnectorByGUID could NOT find curConnectorGUID so NOT deleted!!!");
-		return "CONDeleteConnectorByGUID could NOT find curConnectorGUID so NOT deleted!!!";
-	}
+	try
+	{
 
-	// Find the curConnectorGUID
-	curConnector = GetConnectorByGuid( curConnectorGUID );
-	if ( curConnector == null ) {
-		// Session.Output( "CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curConnector so NOT deleted!!!");
-		return "CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curConnector so NOT deleted!!!";
-	}
+		// Find the curConnectorGUID to identify the Connector
+		let curConnectorGUID = theConnectorGUID;
+		if ( curConnectorGUID == null ) {
+			// BLOGTrace( "CONDeleteConnectorByGUID could NOT find curConnectorGUID so NOT deleted!!!");
+			return "CONDeleteConnectorByGUID could NOT find curConnectorGUID so NOT deleted!!!";
+		}
+
+		// Find the curConnectorGUID
+		curConnector = GetConnectorByGuid( curConnectorGUID );
+		if ( curConnector == null ) {
+			// BLOGTrace( "CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curConnector so NOT deleted!!!");
+			return "CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curConnector so NOT deleted!!!";
+		}
 
 
-	// Find and process the source element defined by Start_Object_ID
-	let curElementClientID = curConnector.ClientID;
-	curElementClient       = GetElementByID( curElementClientID );
-	if ( curElementClient == null ) {
-		// Session.Output("CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curElementClient with curElementClientID = " + curElementClientID + " so NOT deleted!!!" );
-		return "CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curElementClient with curElementClientID = " + curElementClientID + " so NOT deleted!!!";
-	}
+		// Find and process the source element defined by Start_Object_ID
+		let curElementClientID = curConnector.ClientID;
+		curElementClient       = GetElementByID( curElementClientID );
+		if ( curElementClient == null ) {
+			// BLOGTrace("CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curElementClient with curElementClientID = " + curElementClientID + " so NOT deleted!!!" );
+			return "CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curElementClient with curElementClientID = " + curElementClientID + " so NOT deleted!!!";
+		}
 
-	// Find and process the target element defined by End_Object_ID
-	let curElementSupplierID = curConnector.SupplierID;
-	curElementSupplier       = GetElementByID( curElementSupplierID );
-	if ( curElementSupplier == null ) {
-		// Session.Output("CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curElementSupplier with curElementSupplierID = " + curElementSupplierID + " so NOT deleted!!!" );
-		return "CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curElementSupplier with curElementSupplierID = " + curElementSupplierID + " so NOT deleted!!!";
-	}
+		// Find and process the target element defined by End_Object_ID
+		let curElementSupplierID = curConnector.SupplierID;
+		curElementSupplier       = GetElementByID( curElementSupplierID );
+		if ( curElementSupplier == null ) {
+			// BLOGTrace("CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curElementSupplier with curElementSupplierID = " + curElementSupplierID + " so NOT deleted!!!" );
+			return "CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curElementSupplier with curElementSupplierID = " + curElementSupplierID + " so NOT deleted!!!";
+		}
 
-	// Process the Connector found by curConnectorGUID between curElementClient and curElementSupplier
-	// Session.Output("CONDeleteConnectorByGUID( " + curConnectorGUID + " ) found curConnector.ConnectorID = " + curConnector.ConnectorID + ", ClientID = " + curConnector.ClientID + ", SupplierID = " + curConnector.SupplierID + "!!!" );
-	// Delete the element as part of the curConnector.ClientID
-	var curTempConnector   as EA.Connector;
-	let curConnectorDeleted = false;
-	// Find the index in the curElementClient.Connectors for the curConnector to delete
-	for ( let i = 0 ; i < curElementClient.Connectors.Count ; i++ ) {
-		curTempConnector = curElementClient.Connectors.GetAt( i );
-		// Session.Output("CONDeleteConnectorByGUID TESTING curElementClient(" + i + ") where curTempConnector.ConnectorID = " + curTempConnector.ConnectorID + "!!!" );
-		if ( curTempConnector.ConnectorID == curConnector.ConnectorID ) {
-			curElementClient.Connectors.DeleteAt( i, false );
-			// Session.Output("CONDeleteConnectorByGUID deleted curElementClient(" + i + ") where curConnector.ConnectorID = " + curConnector.ConnectorID + "!!!" );
-			curConnectorDeleted = true;
-			break; // Stop processing the rest of the Connectors in the for loop
+		// Process the Connector found by curConnectorGUID between curElementClient and curElementSupplier
+		// BLOGTrace("CONDeleteConnectorByGUID( " + curConnectorGUID + " ) found curConnector.ConnectorID = " + curConnector.ConnectorID + ", ClientID = " + curConnector.ClientID + ", SupplierID = " + curConnector.SupplierID + "!!!" );
+		// Delete the element as part of the curConnector.ClientID
+		var curTempConnector   as EA.Connector;
+		let curConnectorDeleted = false;
+		// Find the index in the curElementClient.Connectors for the curConnector to delete
+		let curElementClientConnectorsCount = curElementClient.Connectors.Count;
+		for ( let i = 0 ; i < curElementClientConnectorsCount ; i++ ) {
+			curTempConnector = curElementClient.Connectors.GetAt( i );
+			// BLOGTrace("CONDeleteConnectorByGUID TESTING curElementClient(" + i + ") where curTempConnector.ConnectorID = " + curTempConnector.ConnectorID + "!!!" );
+			if ( curTempConnector.ConnectorID == curConnector.ConnectorID ) {
+				curElementClient.Connectors.DeleteAt( i, false );
+				// BLOGTrace("CONDeleteConnectorByGUID deleted curElementClient(" + i + ") where curConnector.ConnectorID = " + curConnector.ConnectorID + "!!!" );
+				curConnectorDeleted = true;
+				break; // Stop processing the rest of the Connectors in the for loop
+			}
+		}
+
+		// Check curConnectorDeleted to commit updates to refresh changes
+		if ( curConnectorDeleted ) {
+			curElementClient.Connectors.Refresh();
+			curElementSupplier.Connectors.Refresh();
+		} else {
+			// BLOGTrace("CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curElementSupplier with curElementSupplierID = " + curElementSupplierID + " so NOT deleted!!!" );
+			return "CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curConnector.ConnectorID = " + curConnector.ConnectorID + " within " + curElementClient.Connectors.Count + " curElementClient.Connectors so NOT deleted!!!";
 		}
 	}
-
-	// Check curConnectorDeleted to commit updates to refresh changes
-	if ( curConnectorDeleted ) {
-		curElementClient.Connectors.Refresh();
-		curElementSupplier.Connectors.Refresh();
-	} else {
-		// Session.Output("CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curElementSupplier with curElementSupplierID = " + curElementSupplierID + " so NOT deleted!!!" );
-		return "CONDeleteConnectorByGUID( " + curConnectorGUID + " ) could NOT find curConnector.ConnectorID = " + curConnector.ConnectorID + " within " + curElementClient.Connectors.Count + " curElementClient.Connectors so NOT deleted!!!";
+	catch(catch_err)
+	{
+		BLOGError("CONDeleteConnectorByGUID found Error: " + catch_err + "!!!" );
 	}
 
 	return "";

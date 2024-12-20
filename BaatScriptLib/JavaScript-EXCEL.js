@@ -1,5 +1,5 @@
 //[group=BaatScriptLib]
-!INC EAScriptLib.JavaScript-Logging
+!INC BaatScriptLib.BaatScript-Logging
 
 /**
  * @file JavaScript-EXCEL
@@ -23,8 +23,8 @@
  * EXCELEExportInitialize(), the user may continually call EXCELEExportRow() to export a row to file. 
  * Once all rows have been added, the export session is closed by calling EXCELEExportFinalize(). 
  *
- * @author J. de Baat, based on JavaScript - CSV by Sparx Systems
- * @date 2024-07-13
+ * @author	J. de Baat, based on JavaScript - CSV by Sparx Systems
+ * @date	20-12-2024
  */
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ function EXCELWOpenWorkbook( fileName /* : String */ ) /* : Microsoft.Office.Int
 	try {
 		objExcelWorkBook = objExcelApplication.Workbooks.Open( fileName );
 	} catch (err) {
-		LOGError( "EXCELWOpenWorkbook catched error " + err.message + "!" );
+		BLOGError( "EXCELWOpenWorkbook catched error " + err.message + "!" );
 		objExcelWorkBook = null;
 	}
 	if ( objExcelWorkBook != null ) {
@@ -64,16 +64,16 @@ function EXCELWOpenWorkbook( fileName /* : String */ ) /* : Microsoft.Office.Int
 	} else {
 		// Make sure we have a file
 		// Session.Output( "EXCELWGetFileName Started with strExcelFileName = " + strExcelFileName + " !" );
-		strExcelFileName = EXCELWCheckExcelFileName( strExcelFileName );
+		let strExcelFileName = EXCELWCheckExcelFileName( fileName );
 		Session.Output( "EXCELWGetFileName Checked strExcelFileName = " + strExcelFileName + " !" );
 
 		// If the file does not exist, then create one
 		try {
 			objExcelWorkBook = objExcelApplication.Workbooks.Add();
 			// Session.Output("EXCELWOpenWorkbook objExcelApplication contains " + objExcelApplication.Workbooks.Count + " Workbooks after Add!" );
-			Session.Output("EXCELWOpenWorkbook created a new Workbook with fileName = " + fileName + " !" );
+			Session.Output("EXCELWOpenWorkbook created a new Workbook with strExcelFileName = " + strExcelFileName + " !" );
 		} catch (err) {
-			LOGError( "EXCELWOpenWorkbook could NOT open nor add fileName " + fileName + ", catched error " + err.message + "!" );
+			BLOGError( "EXCELWOpenWorkbook could NOT open nor add strExcelFileName " + strExcelFileName + ", catched error " + err.message + "!" );
 			objExcelWorkBook = null;
 		}
 	}
@@ -93,7 +93,7 @@ function EXCELWCheckExcelFileName( theExcelFileName ) /* : string */
 
 	// Make sure we have a filename
 	if ( ( strExcelFileName == null ) || ( strExcelFileName.length == 0 ) ) {
-		LOGError( "EXCELWCheckExcelFileName could NOT check empty strExcelFileName!" );
+		BLOGError( "EXCELWCheckExcelFileName could NOT check empty strExcelFileName!" );
 		return null;
 	}
 
@@ -103,7 +103,7 @@ function EXCELWCheckExcelFileName( theExcelFileName ) /* : string */
 	try {
 		var fileSystemObject = new COMObject( "Scripting.FileSystemObject" );
 	} catch (err) {
-		LOGError( "EXCELWCheckExcelFileName catched error " + err.message + "!" );
+		BLOGError( "EXCELWCheckExcelFileName catched error " + err.message + "!" );
 		return null;
 	}
 	if ( fileSystemObject.FileExists( strExcelFileName ) ) {
@@ -118,7 +118,7 @@ function EXCELWCheckExcelFileName( theExcelFileName ) /* : string */
 		try {
 			objExcelWorkBook = objExcelApplication.Workbooks.Add();
 		} catch (err) {
-			LOGError( "EXCELWCheckExcelFileName catched error " + err.message + "!" );
+			BLOGError( "EXCELWCheckExcelFileName catched error " + err.message + "!" );
 			objExcelWorkBook = null;
 		}
 		// Session.Output("EXCELWCheckExcelFileName objExcelApplication DefaultFilePath = " + objExcelApplication.DefaultFilePath + "!!!" );
@@ -142,15 +142,15 @@ function EXCELWCheckExcelFileName( theExcelFileName ) /* : string */
 				objExcelFile.Move( strExcelFileName );
 				objExcelFile = null;
 			} catch (err) {
-				LOGError( "EXCELWCheckExcelFileName could NOT open objExcelFile for strExcelFileName " + strExcelWorkBookFullName + "!" );
-				LOGError( "EXCELWCheckExcelFileName catched error " + err.message + "!" );
+				BLOGError( "EXCELWCheckExcelFileName could NOT open objExcelFile for strExcelFileName " + strExcelWorkBookFullName + "!" );
+				BLOGError( "EXCELWCheckExcelFileName catched error " + err.message + "!" );
 				fileSystemObject = null;
 				return null;
 			}
 
 			// Session.Output("EXCELWCheckExcelFileName created a new Workbook with strExcelFileName = " + strExcelFileName + " !" );
 		} else {
-			LOGError( "EXCELWCheckExcelFileName could NOT open nor add strExcelFileName " + strExcelFileName + "!" );
+			BLOGError( "EXCELWCheckExcelFileName could NOT open nor add strExcelFileName " + strExcelFileName + "!" );
 			fileSystemObject = null;
 			return null;
 		}
@@ -179,10 +179,10 @@ function EXCELWSaveWorkbook( fileName /* : String */ ) /* : void */
 			// Session.Output("EXCELWSaveWorkbook objExcelWorkBook contains " + objExcelWorkBook.Sheets.Count + " Sheets!" );
 			// Session.Output("EXCELWSaveWorkbook saved Workbook with fileName = " + fileName + " !" );
 		} catch (err) {
-			LOGError( "EXCELWSaveWorkbook catched error " + err.message + "!" );
+			BLOGError( "EXCELWSaveWorkbook catched error " + err.message + "!" );
 		}
 	} else {
-		LOGError( "EXCELWSaveWorkbook could NOT save Workbook to fileName " + fileName + "!" );
+		BLOGError( "EXCELWSaveWorkbook could NOT save Workbook to fileName " + fileName + "!" );
 	}
 
 }
@@ -200,7 +200,7 @@ function EXCELWCloseWorkbooks( saveWorkbook /* : boolean */ ) /* : void */
 		}
 		objExcelApplication.Workbooks.Close();
 	} catch (err) {
-		LOGError( "EXCELWCloseWorkbooks catched error " + err.message + "!" );
+		BLOGError( "EXCELWCloseWorkbooks catched error " + err.message + "!" );
 	}
 
 }
@@ -218,10 +218,10 @@ function EXCELWStartExcelApplication() /* : void */
 			// objExcelApplication STARTED
 			// Session.Output("EXCELWStartExcelApplication started Excel.Application !" );
 		} else {
-			LOGError( "EXCELWStartExcelApplication could NOT start Excel.Application!" );
+			BLOGError( "EXCELWStartExcelApplication could NOT start Excel.Application!" );
 		}
 	} catch (err) {
-		LOGError( "EXCELWStartExcelApplication catched error " + err.message + "!" );
+		BLOGError( "EXCELWStartExcelApplication catched error " + err.message + "!" );
 		objExcelApplication = null;
 	}
 
@@ -239,7 +239,7 @@ function EXCELWStopExcelApplication() /* : void */
 	try {
 		objExcelApplication.Quit();
 	} catch (err) {
-		LOGError( "EXCELWStopExcelApplication catched error " + err.message + "!" );
+		BLOGError( "EXCELWStopExcelApplication catched error " + err.message + "!" );
 		objExcelApplication = null;
 	}
 
@@ -260,7 +260,7 @@ function EXCELWGetWorksheet( sheetName /* : String */, addSheet /* : boolean */ 
 	// Check valid objExcelWorkBook
 	if ( objExcelWorkBook == null ) {
 		// objExcelWorkBook NOT FOUND
-		LOGError( "EXCELWGetWorksheet Could NOT get Worksheet " + sheetName + " because objExcelWorkBook NOT opened!" );
+		BLOGError( "EXCELWGetWorksheet Could NOT get Worksheet " + sheetName + " because objExcelWorkBook NOT opened!" );
 		return curExcelWorkSheet;
 	}
 
@@ -268,7 +268,7 @@ function EXCELWGetWorksheet( sheetName /* : String */, addSheet /* : boolean */ 
 	try {
 		curExcelWorkSheet = objExcelWorkBook.Sheets.Item( sheetName );
 	} catch (err) {
-		LOGError( "EXCELWGetWorksheet catched error " + err.message + "!" );
+		BLOGError( "EXCELWGetWorksheet catched error " + err.message + "!" );
 		curExcelWorkSheet = null;
 	}
 	if ( curExcelWorkSheet == null ) {
@@ -279,8 +279,8 @@ function EXCELWGetWorksheet( sheetName /* : String */, addSheet /* : boolean */ 
 				curExcelWorkSheet.Name = sheetName;
 				// Session.Output("EXCELWGetWorksheet created Worksheet with sheetName = " + curExcelWorkSheet.Name + " !" );
 			} catch (err) {
-				LOGError( "EXCELWGetWorksheet Could NOT get Worksheet with sheetName = " + sheetName + " !" );
-				LOGError( "EXCELWGetWorksheet catched error " + err.message + "!" );
+				BLOGError( "EXCELWGetWorksheet Could NOT get Worksheet with sheetName = " + sheetName + " !" );
+				BLOGError( "EXCELWGetWorksheet catched error " + err.message + "!" );
 				curExcelWorkSheet = null;
 			}
 		}
@@ -317,13 +317,13 @@ function EXCELWGetFileName( fileName /* : String */, readOnly /* : boolean */ ) 
 		projectInterface = Repository.GetProjectInterface();
 		strExcelFileName = projectInterface.GetFileNameDialog( strExcelFileName, FilterString, Filterindex, Flags, InitialDirectory, OpenorSave );
 	} catch (err) {
-		LOGError( "EXCELWGetFileName catched error " + err.message + "!" );
+		BLOGError( "EXCELWGetFileName catched error " + err.message + "!" );
 		strExcelFileName = "";
 	}
 
 	// Make sure we have a filename
 	if ( strExcelFileName.length == 0 ) {
-		LOGError( "EXCELWGetFileName Could NOT get a valid fileName, starting with : " + fileName + " !" );
+		BLOGError( "EXCELWGetFileName Could NOT get a valid fileName, starting with : " + fileName + " !" );
 		return null;
 	} else {
 		// Make sure we have a file
@@ -354,7 +354,7 @@ function EXCELGGetValueWithoutPrefix( theValue, thePrefix )
 			return theValue.substring( thePrefixLength );
 		}
 	} catch (err) {
-		LOGError( "EXCELGGetValueWithoutPrefix catched error " + err.message + "!" );
+		BLOGError( "EXCELGGetValueWithoutPrefix catched error " + err.message + "!" );
 	}
 
 	return "";
@@ -394,7 +394,7 @@ function EXCELIImportSheet( sheetName /* : String */, firstRowContainsHeadings /
 		// Check valid objExcelWorkBook
 		if ( objExcelWorkBook == null ) {
 			// objExcelWorkBook NOT FOUND
-			LOGError( "EXCELIImportSheet Could NOT get Worksheet " + sheetName + " because objExcelWorkBook NOT opened!" );
+			BLOGError( "EXCELIImportSheet Could NOT get Worksheet " + sheetName + " because objExcelWorkBook NOT opened!" );
 			return null;
 		}
 
@@ -416,7 +416,7 @@ function EXCELIImportSheet( sheetName /* : String */, firstRowContainsHeadings /
 				excelImportColumnTagsMap = new Map();
 				excelImportColumnList    = [];
 			} catch (err) {
-				LOGError( "EXCELIImportSheet catched error " + err.message + "!" );
+				BLOGError( "EXCELIImportSheet catched error " + err.message + "!" );
 				RowCount    = 0;
 				ColumnCount = 0;
 			}
@@ -452,21 +452,26 @@ function EXCELIImportSheet( sheetName /* : String */, firstRowContainsHeadings /
 					{
 						// Hold a reference to the current row data
 						// Cache column heading positions
+						let excelValue = "";
 						for ( var curCol = 1 ; curCol <= ColumnCount ; curCol++ ) {
-							excelImportCurrentRow.push( curExcelWorkSheet.Cells.Item( curRow, curCol ).Value );
-							// Session.Output( "EXCELIImportSheet excelImportCurrentRow.push(" + (curCol - 1) + ") Cell(" + curRow + "," + curCol + "): " + curExcelWorkSheet.Cells.Item( curRow, curCol ).Value + "!!!" );
+							excelValue = curExcelWorkSheet.Cells.Item( curRow, curCol ).Value + "";
+							if ( ( excelValue == "" ) || ( excelValue == "null" ) ) {
+								excelValue = null;
+							}
+							excelImportCurrentRow.push( excelValue );
+							// Session.Output( "EXCELIImportSheet excelImportCurrentRow.push(" + (curCol - 1) + ") Cell(" + curRow + "," + curCol + "): " + excelValue + "!!!" );
 						}
 						
 						// Invoke the user script callback
 						OnExcelRowImported( curRow );
 					}
 				} catch (err) {
-					LOGError( "EXCELIImportSheet for row[" + curRow + "] catched error " + err.message + "!" );
+					BLOGError( "EXCELIImportSheet for row[" + curRow + "] catched error " + err.message + "!" );
 				}
 
 			}
 		} else {
-			LOGError( "EXCELIImportSheet did NOT find sheetName " + sheetName + "!"  );
+			BLOGError( "EXCELIImportSheet did NOT find sheetName " + sheetName + "!"  );
 		}
 		
 		// Clean up
@@ -478,7 +483,7 @@ function EXCELIImportSheet( sheetName /* : String */, firstRowContainsHeadings /
 	}
 	else
 	{
-		LOGWarning( "Reentrant call made to EXCELIImportSheet(). EXCELIImportSheet() should not be called from within OnExcelRowImported()!" );
+		BLOGWarning( "Reentrant call made to EXCELIImportSheet(). EXCELIImportSheet() should not be called from within OnExcelRowImported()!" );
 	}
 }
 
@@ -509,7 +514,7 @@ function EXCELIContainsColumn( columnName /* : String */ ) /* : boolean */
 	}
 	else
 	{
-		LOGWarning( "No import currently running. EXCELIContainsColumn() should only be called from within OnExcelRowImported()" );
+		BLOGWarning( "No import currently running. EXCELIContainsColumn() should only be called from within OnExcelRowImported()" );
 	}
 	
 	return result;
@@ -527,7 +532,7 @@ function EXCELIContainsColumn( columnName /* : String */ ) /* : boolean */
  */
 function EXCELIGetColumnValueByName( columnName /* : String */ ) /* : variant */
 {	
-	var result;
+	var result = null;
 	
 	if ( excelImportIsImporting )
 	{
@@ -536,7 +541,7 @@ function EXCELIGetColumnValueByName( columnName /* : String */ ) /* : variant */
 	}
 	else
 	{
-		LOGWarning( "No import currently running. EXCELIGetColumnValueByName() should only be called from within OnExcelRowImported()" );
+		BLOGWarning( "No import currently running. EXCELIGetColumnValueByName() should only be called from within OnExcelRowImported()" );
 	}
 	
 	return result;
@@ -551,7 +556,7 @@ function EXCELIGetColumnValueByName( columnName /* : String */ ) /* : variant */
  */
 function EXCELIGetColumnValueByNumber( columnNumber /* : number */ ) /* : variant */
 {
-	var result;
+	var result = null;
 	
 	if ( excelImportIsImporting )
 	{
@@ -561,7 +566,7 @@ function EXCELIGetColumnValueByNumber( columnNumber /* : number */ ) /* : varian
 	}
 	else
 	{
-		LOGWarning( "No import currently running. EXCELIGetColumnValueByNumber() should only be called from within OnExcelRowImported()" );
+		BLOGWarning( "No import currently running. EXCELIGetColumnValueByNumber() should only be called from within OnExcelRowImported()" );
 	}
 		
 	return result;
@@ -596,7 +601,7 @@ function EXCELIGetNonStandardElementColumns() /* : Array */
 	}
 	else
 	{
-		LOGWarning( "No import currently running. EXCELIGetNonStandardElementColumns() should only be called from within OnExcelRowImported()" );
+		BLOGWarning( "No import currently running. EXCELIGetNonStandardElementColumns() should only be called from within OnExcelRowImported()" );
 	}
 	
 	return result;
@@ -795,7 +800,7 @@ function EXCELISetStandardElementFieldValues( elementForRow /* : EA.Element */ )
 	}
 	else
 	{
-		LOGWarning( "No import currently running. EXCELISetStandardElementFieldValues() should only be called from within OnExcelRowImported()" );		
+		BLOGWarning( "No import currently running. EXCELISetStandardElementFieldValues() should only be called from within OnExcelRowImported()" );		
 	}
 }
 
@@ -824,11 +829,11 @@ function __EXCELIGetColumnNumber( columnName /* : String */ ) /* : number */
 ////																							////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-let exportRow            = 1;		// : Integer with the value for the current Row to export to
-let exportHeaderRow      = 0;		// : Integer with the value for the header Row to export to
-let exportColumns        = null;	// : Array with column headers to export
-let exportExcelWorkSheet = null;
-let exportIsExporting    = false;
+let excelExportRow         = 1;		// : Integer with the value for the current Row to export to
+let excelExportHeaderRow   = 0;		// : Integer with the value for the header Row to export to
+let excelExportColumns     = null;	// : Array with column headers to export
+let exportExcelWorkSheet   = null;
+let excelExportIsExporting = false;
 
 /**
  * Initialises a EXCEL Export session. This must be called before calls to EXCELEExportRow() are made. 
@@ -843,21 +848,21 @@ function EXCELEExportInitialize( sheetName /* : String */, columns /* : Array */
 	exportColumnHeadings /* : boolean */ ) /* : void */
 {
 
-	if ( !exportIsExporting )
+	if ( !excelExportIsExporting )
 	{
 
 		// Check if Worksheet successfully opened for writing
 		if ( objExcelWorkBook == null ) {
 			// objExcelWorkBook NOT FOUND
-			LOGError( "EXCELEExportInitialize Could NOT get Worksheet " + sheetName + ", because objExcelWorkBook NOT opened!" );
+			BLOGError( "EXCELEExportInitialize Could NOT get Worksheet " + sheetName + ", because objExcelWorkBook NOT opened!" );
 			return null;
 		}
 
 		// Switch into exporting mode
-		exportIsExporting = true;
+		excelExportIsExporting = true;
 
 		// Setup column array
-		exportColumns = columns;
+		excelExportColumns = columns;
 
 		// Get and check the exportExcelWorkSheet for sheetName
 		exportExcelWorkSheet  = EXCELWGetWorksheet( sheetName, true );
@@ -873,30 +878,30 @@ function EXCELEExportInitialize( sheetName /* : String */, columns /* : Array */
 				// Check if headers should be exported
 				if ( exportColumnHeadings )
 				{
-					// Get the header information from the current exportRow
-					exportHeaderRow = exportRow;
-					for ( var curCol = 1 ; curCol <= exportColumns.length ; curCol++ ) {
-						exportExcelWorkSheet.Cells.Item( exportHeaderRow, curCol ).Value = exportColumns[ curCol - 1 ];
+					// Get the header information from the current excelExportRow
+					exportHeaderRow = excelExportRow;
+					for ( var curCol = 1 ; curCol <= excelExportColumns.length ; curCol++ ) {
+						exportExcelWorkSheet.Cells.Item( exportHeaderRow, curCol ).Value = excelExportColumns[ curCol - 1 ];
 					}
-					exportRow++;
+					excelExportRow++;
 				}
 			} catch (err) {
-				LOGError( "EXCELEExportInitialize catched error " + err.message + "!" );
+				BLOGError( "EXCELEExportInitialize catched error " + err.message + "!" );
 				return null;
 			}
 		} else {
-			LOGError( "EXCELEExportInitialize did NOT find sheetName " + sheetName + "!"  );
+			BLOGError( "EXCELEExportInitialize did NOT find sheetName " + sheetName + "!"  );
 			return null;
 		}
 
 	}
 	else
 	{
-		LOGWarning( "EXCELEExportInitialize: EXCEL Export is already in progress" );
+		BLOGWarning( "EXCELEExportInitialize: EXCEL Export is already in progress" );
 		return null;
 	}
 
-	// Session.Output( "EXCELEExportInitialize exportRow = " + exportRow + "!!!" );
+	// Session.Output( "EXCELEExportInitialize excelExportRow = " + excelExportRow + "!!!" );
 
 	return exportExcelWorkSheet;
 
@@ -908,13 +913,13 @@ function EXCELEExportInitialize( sheetName /* : String */, columns /* : Array */
  */
 function EXCELEAddExportColumns( columns /* : Array */ ) /* : Void */
 {
-	// Check whether exportIsExporting and exportHeaderRow used
-	if ( ( exportIsExporting ) && ( exportHeaderRow > 0 ) )
+	// Check whether excelExportIsExporting and exportHeaderRow used
+	if ( ( excelExportIsExporting ) && ( exportHeaderRow > 0 ) )
 	{
 		try {
 
 			let columnArray       = [];
-			let exportColumnToAdd = exportColumns.length;
+			let exportColumnToAdd = excelExportColumns.length;
 
 			// Setup column array
 			columnArray = columns;
@@ -923,26 +928,26 @@ function EXCELEAddExportColumns( columns /* : Array */ ) /* : Void */
 			for ( var curCol = 1 ; curCol <= columnArray.length ; curCol++ ) {
 				let exportColumnText = columnArray[ curCol - 1 ];
 				let duplicateFound   = false;
-				// Check current exportColumns to prevent duplicates
-				for ( var curExCol = 0 ; curExCol < exportColumns.length ; curExCol++ ) {
-					if ( exportColumns[ curExCol ] == exportColumnText ) {
+				// Check current excelExportColumns to prevent duplicates
+				for ( var curExCol = 0 ; curExCol < excelExportColumns.length ; curExCol++ ) {
+					if ( excelExportColumns[ curExCol ] == exportColumnText ) {
 						duplicateFound = true;
 					}
 				}
 				// Only add new column when not duplicateFound
 				if ( ! duplicateFound ) {
 					exportColumnToAdd++;
-					exportColumns.push( exportColumnText );
+					excelExportColumns.push( exportColumnText );
 					exportExcelWorkSheet.Cells.Item( exportHeaderRow, exportColumnToAdd ).Value = exportColumnText;
 				}
 			}
 		} catch (err) {
-			LOGError( "EXCELEAddExportColumns catched error " + err.message + "!" );
+			BLOGError( "EXCELEAddExportColumns catched error " + err.message + "!" );
 		}
 	}
 	else
 	{
-		LOGWarning( "EXCELEAddExportColumns: EXCEL Export is not currently in progress" );
+		BLOGWarning( "EXCELEAddExportColumns: EXCEL Export is not currently in progress" );
 	}
 }
 
@@ -953,17 +958,17 @@ function EXCELEAddExportColumns( columns /* : Array */ ) /* : Void */
  */
 function EXCELEExportFinalize() /* : void */
 {
-	if ( exportIsExporting )
+	if ( excelExportIsExporting )
 	{
 		// Clean up column array
-		exportColumns = null;
+		excelExportColumns = null;
 
 		// Switch out of exporting mode
-		exportIsExporting = false;
+		excelExportIsExporting = false;
 	}
 	else
 	{
-		LOGWarning( "EXCELEExportFinalize: EXCEL Export is not currently in progress" );
+		BLOGWarning( "EXCELEExportFinalize: EXCEL Export is not currently in progress" );
 	}
 }
 
@@ -977,25 +982,25 @@ function EXCELEExportFinalize() /* : void */
 
 function EXCELEExportRow( valueMap /* : Map */ ) /* : void */
 {
-	if ( exportIsExporting )
+	if ( excelExportIsExporting )
 	{
 
 		// Check if Worksheet successfully opened for writing
 		if ( exportExcelWorkSheet == null ) {
 			// exportExcelWorkSheet NOT FOUND
-			LOGError( "EXCELEExportRow Could NOT export row because exportExcelWorkSheet NOT opened!" );
+			BLOGError( "EXCELEExportRow Could NOT export row because exportExcelWorkSheet NOT opened!" );
 			return;
 		}
 
 		try {
 
-			if ( exportColumns.length > 0 )
+			if ( excelExportColumns.length > 0 )
 			{
 
 				// Iterate over all columns specified in EXCELEExportInitialize()
-				for ( let curCol = 1 ; curCol <= exportColumns.length ; curCol++ ) {
+				for ( let curCol = 1 ; curCol <= excelExportColumns.length ; curCol++ ) {
 					// Get the column name
-					let currentColumn = exportColumns[ curCol - 1 ];
+					let currentColumn = excelExportColumns[ curCol - 1 ];
 
 					// Get the corresponding field value from valueMap
 					let fieldValue = valueMap.get( currentColumn );
@@ -1005,21 +1010,21 @@ function EXCELEExportRow( valueMap /* : Map */ ) /* : void */
 						fieldValue = "";
 					}
 					
-					exportExcelWorkSheet.Cells.Item( exportRow, curCol ).Value = __EXCELEToSafeEXCELString( fieldValue );
+					exportExcelWorkSheet.Cells.Item( excelExportRow, curCol ).Value = __EXCELEToSafeEXCELString( fieldValue );
 				}
 
-				// Prepare the exportRow for the next export
-				exportRow++;
-				// Session.Output( "EXCELEExportRow exportRow = " + exportRow + "!!!" );
+				// Prepare the excelExportRow for the next export
+				excelExportRow++;
+				// Session.Output( "EXCELEExportRow excelExportRow = " + excelExportRow + "!!!" );
 			}
 		} catch (err) {
-			LOGError( "EXCELEExportRow catched error " + err.message + "!" );
+			BLOGError( "EXCELEExportRow catched error " + err.message + "!" );
 			return;
 		}
 	}
 	else
 	{
-		LOGWarning( "EXCEL Export is not currently in progress. Call EXCELEExportInitialize() to start a EXCEL Export" );
+		BLOGWarning( "EXCEL Export is not currently in progress. Call EXCELEExportInitialize() to start a EXCEL Export" );
 	}
 
 }
@@ -1223,7 +1228,7 @@ function EXCELEGetStandardElementFieldValues( element /* : EA.Element */ ) /* : 
 		valueMap.set( "Visibility", theElement.Visibility );
 
 	} catch (err) {
-		LOGError( "EXCELEGetStandardElementFieldValues catched error " + err.message + "!" );
+		BLOGError( "EXCELEGetStandardElementFieldValues catched error " + err.message + "!" );
 		valueMap = null;
 	}
 

@@ -1,18 +1,25 @@
 //[group=BaatDiagramScripts]
 !INC Local Scripts.EAConstants-JavaScript
+!INC BaatScriptLib.BaatScript-Logging
 
 /*
- * Script Name: RefreshDynamicLegend
- * Author:      J de Baat
- * Purpose:     Refresh the set of color definitions of all legend elements supporting all values occuring on the selected diagram
- * Date:        04-08-2024
+ * This code has been included from the default Diagram Script template.
  *
  * For all LegendElements on the selected diagram:
  *   If TaggedValue filter
  *      Find all TaggedValues for this Value
  *      Update t_xref list of properties for this legend
  *   Refresh Diagram
-*/
+ *
+ *
+ * Script Name: RefreshDynamicLegend
+ * Author:      J de Baat
+ * Purpose:     Refresh the set of color definitions of all legend elements supporting all values occuring on the selected diagram
+ * Date:        20-12-2024
+ */
+
+// The level to log at
+var   BLOGLEVEL = BLOGLEVEL_WARNING;		// Choose from: BLOGLEVEL_ERROR, BLOGLEVEL_WARNING, BLOGLEVEL_INFO, BLOGLEVEL_DEBUG, BLOGLEVEL_TRACE
 
 /*
  * A list of colors to use for generating the list of legend values
@@ -241,53 +248,62 @@ function RefreshDynamicLegend()
 	// Show the script output window
 	Repository.EnsureOutputVisible( "Script" );
 
-	Session.Output( "======================================= Started RefreshDynamicLegend " );
+	Session.Output( "======================================= Started RefreshDynamicLegend at " + _BLOGGetDisplayDate() + "!" );
 
-	// Get a reference to the current diagram
-	var currentDiagram as EA.Diagram;
-	currentDiagram = Repository.GetCurrentDiagram();
-
-	if ( currentDiagram != null )
+	try
 	{
-		Session.Output("Selected Diagram(DiagramID: " + currentDiagram.DiagramID + ") Name= " + currentDiagram.Name );
 
-		// Get a reference to any selected connector/objects
-		var diagramObjects as EA.Collection;
-		var currentElement as EA.Element;
-		diagramObjects = currentDiagram.DiagramObjects;
+		// Get a reference to the current diagram
+		var currentDiagram as EA.Diagram;
+		currentDiagram      = Repository.GetCurrentDiagram();
 
-		// Check whether this diagram has any objects in it
-		if ( diagramObjects.Count > 0 )
+		if ( currentDiagram != null )
 		{
-			Session.Output("Selected diagramObjects.Count: " + diagramObjects.Count );
-			// One or more diagram objects are selected
-			for ( var i = 0 ; i < diagramObjects.Count ; i++ )
+			BLOGInfo("Selected Diagram(DiagramID: " + currentDiagram.DiagramID + ") Name= " + currentDiagram.Name );
+
+			// Get a reference to any selected connector/objects
+			var diagramObjects as EA.Collection;
+			var currentElement as EA.Element;
+			diagramObjects      = currentDiagram.DiagramObjects;
+
+			// Check whether this diagram has any objects in it
+			if ( diagramObjects.Count > 0 )
 			{
-				// Process the currentDiagramElement
-				var currentDiagramElement as EA.Element;
-				var currentElement        as EA.Element;
-				currentDiagramElement      = diagramObjects.GetAt( i );
-				currentElement             = Repository.GetElementByID( currentDiagramElement.ElementID );
+				BLOGInfo("Selected diagramObjects.Count: " + diagramObjects.Count );
+				// One or more diagram objects are selected
+				let diagramObjectsCount = diagramObjects.Count;
+				for ( var i = 0 ; i < diagramObjectsCount ; i++ )
+				{
+					// Process the currentDiagramElement
+					var currentDiagramElement as EA.Element;
+					var currentElement        as EA.Element;
+					currentDiagramElement      = diagramObjects.GetAt( i );
+					currentElement             = Repository.GetElementByID( currentDiagramElement.ElementID );
 
-				// Process the currentElement when it is a Legend
-				ProcessLegendElement( currentElement );
+					// Process the currentElement when it is a Legend
+					ProcessLegendElement( currentElement );
+				}
+
+				// Reload diagram when all processing is done
+				Repository.ReloadDiagram( currentDiagram.DiagramID );
 			}
-
-			// Reload diagram when all processing is done
-			Repository.ReloadDiagram( currentDiagram.DiagramID );
+			else
+			{
+				// No objects on this diagram
+				BLOGError("No objects on this diagram" );
+			}
 		}
 		else
 		{
-			// No objects on this diagram
-			Session.Output("No objects on this diagram to be processed." );
+			Session.Prompt( "This script requires a diagram to be visible.", promptOK)
 		}
 	}
-	else
+	catch(catch_err)
 	{
-		Session.Prompt( "This script requires a diagram to be visible.", promptOK)
+		BLOGError("RefreshDynamicLegend found Error: " + catch_err + "!!!" );
 	}
 
-	Session.Output( "======================================= Finished RefreshDynamicLegend " );
+	Session.Output( "======================================= Finished RefreshDynamicLegend at " + _BLOGGetDisplayDate() + "!" );
 
 }
 
