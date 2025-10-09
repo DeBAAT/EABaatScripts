@@ -27,7 +27,7 @@
  * Once all rows have been added, the export session is closed by calling IMEXEExportFinalize().
  *
  * @author	J. de Baat, based on JavaScript - CSV by Sparx Systems
- * @date	08-10-2025
+ * @date	09-10-2025
  */
 
 const strGlobalEAPackageName        = "ImEx Package";
@@ -1021,6 +1021,7 @@ function IMEXEGetStandardAttributeColumns() /* : Array */
 	standardColumns.push( "Datatype" );
 	standardColumns.push( "Multiplicity" );
 	standardColumns.push( "Visibility" );
+	standardColumns.push( "ExtendedName" );
 
 	return standardColumns;
 }
@@ -1243,6 +1244,7 @@ function IMEXEGetStandardAttributeFieldValues( element /* : EA.Element */, attri
 		valueMap.set( "Datatype", theAttribute.Type );
 		valueMap.set( "Multiplicity", theAttribute.LowerBound + ".." + theAttribute.UpperBound );
 		valueMap.set( "Visibility", theAttribute.Visibility );
+		valueMap.set( "ExtendedName", theElement.Name + "_" + theAttribute.Name );
 
 	} catch (err) {
 		BLOGError( "IMEXEGetStandardAttributeFieldValues catched error " + err.message + "!" );

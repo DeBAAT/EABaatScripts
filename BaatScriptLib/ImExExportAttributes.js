@@ -11,7 +11,7 @@
  * Script Name:	ImExExportAttributes
  * Author:		J de Baat
  * Purpose:		Export the information from Attributes in the selected Package or Diagram
- * Date:		08-10-2025
+ * Date:		09-10-2025
  * 
  * Note:	    Open Excel file for writing contents
  */
@@ -121,7 +121,7 @@ function ProcessElementAttributes( theElement, theNumAttributes )
 			// EXCELEExportRow( curTaggedValueMap );
 			EXCELEExportRow( curAttributeMap );
 			curNumAttributes++;
-			Session.Output( "ProcessElementAttributes Processed curAttributeMap for ElementID " + curElement.ElementID + " and Attribute.Name " + curElementAttribute.Name + "!" );
+			// Session.Output( "ProcessElementAttributes Processed curAttributeMap for ElementID " + curElement.ElementID + " and Attribute.Name " + curElementAttribute.Name + "!" );
 		} else {
 			BLOGError( "ProcessElementAttributes could NOT get curAttributeMap for ElementID " + curElement.ElementID + " and Attribute.Name " + curElementAttribute.Name + "!" );
 		}
