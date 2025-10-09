@@ -27,7 +27,7 @@
  * Once all rows have been added, the export session is closed by calling IMEXEExportFinalize().
  *
  * @author	J. de Baat, based on JavaScript - CSV by Sparx Systems
- * @date	20-12-2024
+ * @date	08-10-2025
  */
 
 const strGlobalEAPackageName        = "ImEx Package";
@@ -995,6 +995,37 @@ function IMEXEGetStandardConnectorColumns() /* : Array */
 }
 
 /**
+ * Returns an array of column names considered standard for EA Element Attributes. This array can be used
+ * as the columns parameter when calling IMEXEExportInitialize()
+ *
+ * @return an array of column names 
+ */
+function IMEXEGetStandardAttributeColumns() /* : Array */
+{
+	let standardColumns = [];
+
+	standardColumns.push( "Action" );
+	standardColumns.push( "CLASSTYPE" );
+	standardColumns.push( "CLASSGUID" );
+	standardColumns.push( "ownerField" );
+	standardColumns.push( "Pos" );
+	standardColumns.push( "Name" );
+	standardColumns.push( "AttributeID" );
+	standardColumns.push( "Stereotype" );
+	standardColumns.push( "ElementName" );
+	standardColumns.push( "ElementID" );
+	standardColumns.push( "Notes" );
+	standardColumns.push( "Style" );
+	standardColumns.push( "StyleEx" );
+	standardColumns.push( "Status" );
+	standardColumns.push( "Datatype" );
+	standardColumns.push( "Multiplicity" );
+	standardColumns.push( "Visibility" );
+
+	return standardColumns;
+}
+
+/**
  * Creates a Value Map of standard property names/values for the specified element. This Value Map 
  * can be used as the valueMap parameter when calling the ExportRow() function.
  *
@@ -1201,10 +1232,13 @@ function IMEXEGetStandardAttributeFieldValues( element /* : EA.Element */, attri
 		valueMap.set( "ownerField", theElement.ElementGUID );
 		valueMap.set( "Pos", theAttribute.Pos );
 		valueMap.set( "Name", theAttribute.Name );
+		valueMap.set( "AttributeID", theAttribute.AttributeID );
 		valueMap.set( "Stereotype", theAttribute.StereotypeEx );
-		valueMap.set( "ElementID", theAttribute.AttributeID );
+		valueMap.set( "ElementName", theElement.Name );
+		valueMap.set( "ElementID", theElement.ElementID );
 		valueMap.set( "Notes", theAttribute.Notes );
-		valueMap.set( "Alias", theAttribute.Style );
+		valueMap.set( "Style", theAttribute.Style );
+		valueMap.set( "StyleEx", theAttribute.StyleEx );
 		valueMap.set( "Status", "" );
 		valueMap.set( "Datatype", theAttribute.Type );
 		valueMap.set( "Multiplicity", theAttribute.LowerBound + ".." + theAttribute.UpperBound );
